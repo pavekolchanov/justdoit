@@ -1,5 +1,8 @@
 #!/bin/bash
 
+set -e
+source settings.env
+
 function pssh_trap_handler()
 {
     MYSELF="$0"
@@ -22,6 +25,7 @@ function pssh_trap_handler()
 if [ -n "$1" ] && [ -n "$2" ]
 then
     LOCAL_PATCH="$1"
+    REMOTE_PATCH=$( basename "$LOCAL_PATCH" )
 else
     echo "Usage: `basename $0` patch servers|file"
     echo "Patch must contain absolute paths"
@@ -32,15 +36,16 @@ trap 'pssh_trap_handler ${LINENO} $?' ERR
 
 if [ -f "$2" ]; then
     # processed hosts file
-    HOSTARG="--hosts $2"
+    HOSTS="--hosts $2"
 else
     # processed hosts args
-    #HOSTS="${@:2}"
-    HOSTARG="--host \"${@:2}\""
+    HOSTS="--host \"${@:2}\""
 fi
 
-REMOTE_PATCH=$( basename "$LOCAL_PATCH" )
-
-parallel-scp --extra-args "-F ssh_config" $HOSTARG "$LOCAL_PATCH" "/tmp/$REMOTE_PATCH" && \
-parallel-ssh --inline --extra-args "-F ssh_config" $HOSTARG "cd / ; patch -p0 < /tmp/$REMOTE_PATCH" && \
-parallel-ssh --extra-args "-F ssh_config" $HOSTARG "rm /tmp/$REMOTE_PATCH"
+parallel-ssh --extra-args "-F $SSH_CONFIG" $HOSTS "mkdir -p $REMOTE_DIR" > /dev/null && \
+parallel-scp --extra-args "-F $SSH_CONFIG" $HOSTS "$LOCAL_PATCH" "$REMOTE_DIR/$REMOTE_PATCH" && \
+parallel-ssh $OUTPUT --extra-args "-F $SSH_CONFIG" $HOSTS "cd / ; patch -p0 < $REMOTE_DIR/$REMOTE_PATCH" && \
+if [ "$CLEAN" == "true" ]
+then
+    parallel-ssh --extra-args "-F $SSH_CONFIG" $HOSTS "rm $REMOTE_DIR/$REMOTE_PATCH"
+fi

@@ -1,5 +1,8 @@
-#!/bin/bash
-# ssh="ssh -q -F ssh_config"
+#!/usr/bin/env bash
+
+set -e
+
+source "settings.env"
 
 if [ -n "$1" ] && [ -n "$2" ]
 then
@@ -10,8 +13,11 @@ else
 fi
 
 if [ -f "$2" ]; then
-	parallel-ssh --inline --extra-args "-F ssh_config" --hosts "$2" "$COMMAND"
+    # processed hosts file
+    HOSTS="--hosts $2"
 else
-	HOSTS="${@:2}"
-	parallel-ssh --inline --extra-args "-F ssh_config" --host "$HOSTS" "$COMMAND"
+    # processed hosts args
+    HOSTS="--host \"${@:2}\""
 fi
+
+parallel-ssh $OUTPUT --extra-args "-F $SSH_CONFIG" $HOSTS "$COMMAND"
