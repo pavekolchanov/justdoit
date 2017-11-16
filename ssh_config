@@ -1,0 +1,3 @@
+UserKnownHostsFile known_hosts
+StrictHostKeyChecking no
+ConnectTimeout 5
