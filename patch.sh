@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -e
+set -eu
 source settings.env
 
 function pssh_trap_handler()
@@ -42,10 +42,10 @@ else
     HOSTS="--host \"${@:2}\""
 fi
 
-parallel-ssh --extra-args "-F $SSH_CONFIG" $HOSTS "mkdir -p $REMOTE_DIR" > /dev/null && \
-parallel-scp --extra-args "-F $SSH_CONFIG" $HOSTS "$LOCAL_PATCH" "$REMOTE_DIR/$REMOTE_PATCH" && \
-parallel-ssh $OUTPUT --extra-args "-F $SSH_CONFIG" $HOSTS "cd / ; patch -p0 < $REMOTE_DIR/$REMOTE_PATCH" && \
+parallel-ssh --extra-args "-F $SSH_CONFIG" $HOSTS "mkdir -p $REMOTE_DIR" > /dev/null
+parallel-scp --extra-args "-F $SSH_CONFIG" $HOSTS "$LOCAL_PATCH" "$REMOTE_DIR/$REMOTE_PATCH" > /dev/null
+parallel-ssh $OUTPUT --extra-args "-F $SSH_CONFIG" $HOSTS "cd / ; patch -p0 < $REMOTE_DIR/$REMOTE_PATCH"
 if [ "$CLEAN" == "true" ]
 then
-    parallel-ssh --extra-args "-F $SSH_CONFIG" $HOSTS "rm $REMOTE_DIR/$REMOTE_PATCH"
+    parallel-ssh --extra-args "-F $SSH_CONFIG" $HOSTS "rm $REMOTE_DIR/$REMOTE_PATCH" > /dev/null
 fi

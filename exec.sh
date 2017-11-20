@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 
-set -e
-
+set -eu
 source "settings.env"
 
 if [ -n "$1" ] && [ -n "$2" ]

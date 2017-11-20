@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -e
+set -eu
 source "settings.env"
 
 function pssh_trap_handler()
@@ -38,14 +38,13 @@ if [ -f "$2" ]; then
 	HOSTS="--hosts $2"
 else
 	# processed hosts args
-	#HOSTS="${@:2}"
 	HOSTS="--host \"${@:2}\""
 fi
 
-parallel-ssh --extra-args "-F $SSH_CONFIG" $HOSTS "mkdir -p $REMOTE_DIR" > /dev/null && \
-parallel-scp --extra-args "-F $SSH_CONFIG" $HOSTS "$LOCAL_SCRIPT" "$REMOTE_DIR/$REMOTE_SCRIPT" > /dev/null  && \
+parallel-ssh --extra-args "-F $SSH_CONFIG" $HOSTS "mkdir -p $REMOTE_DIR" > /dev/null
+parallel-scp --extra-args "-F $SSH_CONFIG" $HOSTS "$LOCAL_SCRIPT" "$REMOTE_DIR/$REMOTE_SCRIPT" > /dev/null
 parallel-ssh $OUTPUT --extra-args "-F $SSH_CONFIG" $HOSTS "chmod +x $REMOTE_DIR/$REMOTE_SCRIPT ; $REMOTE_DIR/$REMOTE_SCRIPT"
 if [ "$CLEAN" == "true" ]
 then
-	parallel-ssh --extra-args "-F $SSH_CONFIG" $HOSTS "rm $REMOTE_DIR/$REMOTE_SCRIPT" > /dev/null 
+	parallel-ssh --extra-args "-F $SSH_CONFIG" $HOSTS "rm $REMOTE_DIR/$REMOTE_SCRIPT" > /dev/null
 fi
